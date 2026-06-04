@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Dijkstra",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/dijkstra_demo",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "cmake build",
+            "console": "integratedTerminal",
+            "stopOnEntry": false
+        }
+    ]
+}
