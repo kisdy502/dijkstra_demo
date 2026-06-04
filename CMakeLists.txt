@@ -8,9 +8,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Debug build by default
 set(CMAKE_BUILD_TYPE Debug)
 
-# Debug macro
-add_compile_definitions(DIJKSTRA_DEBUG=$<CONFIG:Debug>)
-
 add_executable(dijkstra_demo
     src/main.cpp
     src/dijkstra.cpp
