@@ -111,13 +111,16 @@ DijkstraResult dijkstra(const Graph& graph, int source) {
 #endif
 
     while (!pq.empty()) {
-        State state = pq.top();   // State = std::pair<int64_t, int>
-        int64_t d = state.first;
-        int u = state.second;
+        // 从堆顶取出当前距离最小的节点
+        State state = pq.top();         // State = std::pair<int64_t, int>
+        int64_t d = state.first;        // d = 源点到该节点的当前最短距离
+        int u     = state.second;       // u = 该节点在 adj_ 中的内部索引
         pq.pop();
 
-        if (d > dist[u]){
-            continue;  // 过期数据
+        // 惰性删除：堆中可能存在同一节点的过期条目，
+        // 若 d 大于已记录的最短距离，说明这是旧数据，跳过
+        if (d > dist[u]) {
+            continue;
         } 
 
 #ifdef DIJKSTRA_DEBUG
@@ -126,18 +129,20 @@ DijkstraResult dijkstra(const Graph& graph, int source) {
                   << " | 距离: " << d << "\n";
 #endif
 
+        // 遍历 u 的所有出边，尝试松弛邻居
         for (const Edge& e : adj[u]) {
-            int v = -1;
-            // 在 nodes 中找 e.to 的索引
+            int v = -1;                  // v = 邻居节点 e.to 在 adj_ 中的内部索引
             for (int k = 0; k < n; ++k) {
                 if (nodes[k] == e.to) { v = k; break; }
             }
 
+            // 松弛操作：如果经过 u 到达 v 比当前记录的距离更短，则更新
+            // 三角不等式: dist[v] <= dist[u] + weight(u, v)
             if (dist[v] > dist[u] + e.weight) {
-                int64_t old = dist[v];
-                dist[v] = dist[u] + e.weight;
-                prev[v] = u;
-                pq.emplace(dist[v], v);
+                int64_t old = dist[v];           // old = 松弛前的距离（仅用于调试输出）
+                dist[v] = dist[u] + e.weight;    // 更新为更短的距离
+                prev[v] = u;                     // 记录前驱：v 是从 u 走过来的
+                pq.emplace(dist[v], v);          // 将新的 (距离, 节点) 推入堆，等待后续处理
 
 #ifdef DIJKSTRA_DEBUG
                 std::cerr << "    -> 松弛边 " << nodes[u] << " -> " << e.to
@@ -193,20 +198,22 @@ PathResult findPath(const Graph& graph, int start, int goal) {
 #endif
 
     while (!pq.empty()) {
-        State state = pq.top();   // State = std::pair<int64_t, int>
-        int64_t d = state.first;
-        int u = state.second;
+        // 从堆顶取出当前距离最小的节点
+        State state = pq.top();         // State = std::pair<int64_t, int>
+        int64_t d = state.first;        // d = 起点到该节点的当前最短距离
+        int u     = state.second;       // u = 该节点在 adj_ 中的内部索引
         pq.pop();
 
+        // 惰性删除：跳过过期条目
         if (d > dist[u]) continue;
 
-        // ★ 关键改造：找到目标节点后立即终止
+        // 找到目标！Dijkstra 保证首次出队的 goal 距离即为最短距离，立即终止
         if (u == goalIdx) {
 #ifdef DIJKSTRA_DEBUG
             std::cerr << "[findPath Debug] 到达目标! 迭代 #" << ++iteration
                       << " | 总代价: " << d << "\n";
 #endif
-            // 回溯路径
+            // 沿 prev 链从 goal 回溯到 start，再反转得到正向路径
             std::vector<int> path;
             for (int at = goalIdx; at != -1; at = prev[at]) {
                 path.push_back(nodes[at]);
@@ -220,17 +227,19 @@ PathResult findPath(const Graph& graph, int start, int goal) {
                   << " | 节点: " << nodes[u] << " | dist=" << d << "\n";
 #endif
 
+        // 遍历 u 的所有出边，尝试松弛邻居
         for (const Edge& e : adj[u]) {
-            int v = -1;
+            int v = -1;                  // v = 邻居节点 e.to 在 adj_ 中的内部索引
             for (int k = 0; k < n; ++k) {
                 if (nodes[k] == e.to) { v = k; break; }
             }
 
+            // 松弛操作：经过 u 到 v 是否比已知路径更短？
             if (dist[v] > dist[u] + e.weight) {
-                int64_t old = dist[v];
-                dist[v] = dist[u] + e.weight;
-                prev[v] = u;
-                pq.emplace(dist[v], v);
+                int64_t old = dist[v];           // old = 松弛前的距离（仅用于调试）
+                dist[v] = dist[u] + e.weight;    // 更新为更短的距离
+                prev[v] = u;                     // 记录 v 的前驱是 u
+                pq.emplace(dist[v], v);          // 推入堆，等待后续处理
 
 #ifdef DIJKSTRA_DEBUG
                 std::cerr << "    -> 松弛 " << nodes[u] << " -> " << e.to
