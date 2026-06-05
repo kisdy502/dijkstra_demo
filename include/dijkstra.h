@@ -13,8 +13,10 @@ constexpr int64_t INF = std::numeric_limits<int64_t>::max();
 
 // 边结构
 struct Edge {
-    std::string to;     // 目标节点名
-    int64_t weight;     // 边权重
+    std::string from;      // 起始节点名
+    std::string to;        // 目标节点名
+    std::string name;      // 边名称，格式 "from-to"，如 "A-B"
+    int64_t weight;        // 边权重
 };
 
 // 图：邻接表表示

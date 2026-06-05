@@ -30,7 +30,7 @@ void Graph::addEdge(const std::string& from, const std::string& to, int64_t weig
     if (!idToIndex_.count(to))   addNode(to);
 
     int u = getIndex(from);
-    adj_[u].push_back({to, weight});
+    adj_[u].push_back({from, to, from + "-" + to, weight});
 }
 
 void Graph::addUndirectedEdge(const std::string& from, const std::string& to, int64_t weight) {
@@ -96,37 +96,43 @@ DijkstraResult dijkstra(const Graph& graph, const std::string& source) {
 
     int round = 0;
     while (!pq.empty()) {
-        State state = pq.top();
-        int64_t d = state.first;
-        int u     = state.second;
+        State state = pq.top();                    // State = pair<距离, 节点索引>
+        int64_t distance = state.first;            // first  = 源点到该节点的当前最短距离
+        int currentIdx   = state.second;           // second = 该节点在 adj_ 中的内部索引
         pq.pop();
 
-        if (d > dist[u]) continue;   // 惰性删除
+        if (distance > dist[currentIdx]){
+            continue;   // 惰性删除
+        } 
 
-        std::cout << "--- 第 " << ++round << " 轮: 取出 " << nodes[u]
-                  << " (dist=" << d << ") ---\n";
+        std::cout << "--- 第 " << ++round << " 轮: 取出 " << nodes[currentIdx]
+                  << " (dist=" << distance << ") ---\n";
 
-        // 遍历 u 的所有出边，尝试松弛邻居
-        for (const Edge& e : adj[u]) {
-            int v = -1;
+        // 遍历 currentIdx 的所有出边，尝试松弛邻居
+        for (const Edge& e : adj[currentIdx]) {
+            int neighborIdx = -1;
             for (int k = 0; k < n; ++k) {
-                if (nodes[k] == e.to) { v = k; break; }
+                if (nodes[k] == e.to) { neighborIdx = k; break; }
             }
 
             // 松弛操作
-            if (dist[v] > dist[u] + e.weight) {
-                int64_t old = dist[v];
-                dist[v] = dist[u] + e.weight;
-                prev[v] = u;
-                pq.emplace(dist[v], v);
+            if (dist[neighborIdx] > dist[currentIdx] + e.weight) {
+                int64_t old = dist[neighborIdx];
+                dist[neighborIdx] = dist[currentIdx] + e.weight;
+                prev[neighborIdx] = currentIdx;
+                pq.emplace(dist[neighborIdx], neighborIdx);
 
-                std::cout << "  松弛 " << nodes[u] << " -> " << e.to
-                          << " (权重 " << e.weight << ")"
-                          << " | " << nodes[v] << ": "
+                std::cout << "  松弛边 [" << e.name << "] (权重 " << e.weight << ")"
+                          << " | " << nodes[neighborIdx] << ": "
                           << (old == INF ? "INF" : std::to_string(old))
-                          << " -> " << dist[v] << "\n";
+                          << " -> " << dist[neighborIdx] << "\n";
                 std::cout << "  更新后状态:\n";
                 printState(nodes, dist, prev);
+            } else {
+                std::cout << "  跳过边 [" << e.name << "] | " << nodes[neighborIdx] << " 当前距离 "
+                          << (dist[neighborIdx] == INF ? "INF" : std::to_string(dist[neighborIdx]))
+                          << " <= " << dist[currentIdx] << " + " << e.weight
+                          << " = " << (dist[currentIdx] + e.weight) << " (不更新)\n";
             }
         }
     }
@@ -171,17 +177,17 @@ PathResult findPath(const Graph& graph, const std::string& start, const std::str
 
     int round = 0;
     while (!pq.empty()) {
-        State state = pq.top();
-        int64_t d = state.first;
-        int u     = state.second;
+        State state = pq.top();                    // State = pair<距离, 节点索引>
+        int64_t distance = state.first;            // first  = 起点到该节点的当前最短距离
+        int currentIdx   = state.second;           // second = 该节点在 adj_ 中的内部索引
         pq.pop();
 
-        if (d > dist[u]) continue;
+        if (distance > dist[currentIdx]) continue;
 
         // 到达目标
-        if (u == goalIdx) {
+        if (currentIdx == goalIdx) {
             std::cout << "--- 第 " << ++round << " 轮: 到达目标 " << goal
-                      << " (总代价 " << d << ") ---\n";
+                      << " (总代价 " << distance << ") ---\n";
 
             std::vector<std::string> path;
             for (int at = goalIdx; at != -1; at = prev[at]) {
@@ -195,31 +201,35 @@ PathResult findPath(const Graph& graph, const std::string& start, const std::str
                 std::cout << path[i];
             }
             std::cout << "\n\n";
-            return PathResult{std::move(path), d};
+            return PathResult{std::move(path), distance};
         }
 
-        std::cout << "--- 第 " << ++round << " 轮: 取出 " << nodes[u]
-                  << " (dist=" << d << ") ---\n";
+        std::cout << "--- 第 " << ++round << " 轮: 取出 " << nodes[currentIdx]
+                  << " (dist=" << distance << ") ---\n";
 
-        for (const Edge& e : adj[u]) {
-            int v = -1;
+        for (const Edge& e : adj[currentIdx]) {
+            int neighborIdx = -1;
             for (int k = 0; k < n; ++k) {
-                if (nodes[k] == e.to) { v = k; break; }
+                if (nodes[k] == e.to) { neighborIdx = k; break; }
             }
 
-            if (dist[v] > dist[u] + e.weight) {
-                int64_t old = dist[v];
-                dist[v] = dist[u] + e.weight;
-                prev[v] = u;
-                pq.emplace(dist[v], v);
+            if (dist[neighborIdx] > dist[currentIdx] + e.weight) {
+                int64_t old = dist[neighborIdx];
+                dist[neighborIdx] = dist[currentIdx] + e.weight;
+                prev[neighborIdx] = currentIdx;
+                pq.emplace(dist[neighborIdx], neighborIdx);
 
-                std::cout << "  松弛 " << nodes[u] << " -> " << e.to
-                          << " (权重 " << e.weight << ")"
-                          << " | " << nodes[v] << ": "
+                std::cout << "  松弛边 [" << e.name << "] (权重 " << e.weight << ")"
+                          << " | " << nodes[neighborIdx] << ": "
                           << (old == INF ? "INF" : std::to_string(old))
-                          << " -> " << dist[v] << "\n";
+                          << " -> " << dist[neighborIdx] << "\n";
                 std::cout << "  更新后状态:\n";
                 printState(nodes, dist, prev);
+            } else {
+                std::cout << "  跳过边 [" << e.name << "] | " << nodes[neighborIdx] << " 当前距离 "
+                          << (dist[neighborIdx] == INF ? "INF" : std::to_string(dist[neighborIdx]))
+                          << " <= " << dist[currentIdx] << " + " << e.weight
+                          << " = " << (dist[currentIdx] + e.weight) << " (不更新)\n";
             }
         }
     }

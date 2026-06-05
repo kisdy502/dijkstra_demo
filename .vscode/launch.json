@@ -2,10 +2,43 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug Dijkstra",
+            "name": "Debug Dijkstra (图版)",
             "type": "lldb",
             "request": "launch",
             "program": "${workspaceFolder}/build/dijkstra_demo",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "cmake build",
+            "console": "integratedTerminal",
+            "stopOnEntry": false
+        },
+        {
+            "name": "Debug Dijkstra2 (自实现)",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/dijkstra2_demo",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "cmake build",
+            "console": "integratedTerminal",
+            "stopOnEntry": false
+        },
+        {
+            "name": "Debug Grid Dijkstra (栅格版)",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/grid_dijkstra_demo",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "cmake build",
+            "console": "integratedTerminal",
+            "stopOnEntry": false
+        },
+        {
+            "name": "Debug Grid A* vs Dijkstra (对比)",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/grid_dijkstra_demo",
             "args": [],
             "cwd": "${workspaceFolder}",
             "preLaunchTask": "cmake build",

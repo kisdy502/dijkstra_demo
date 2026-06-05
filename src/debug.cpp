@@ -20,7 +20,7 @@ std::string graphToString(const dijkstra::Graph& graph) {
         } else {
             oss << "\n";
             for (const auto& e : adj[i]) {
-                oss << "  +--[" << e.weight << "]--> " << e.to << "\n";
+                oss << "  +--[" << e.name << " 权重" << e.weight << "]--> " << e.to << "\n";
             }
         }
     }

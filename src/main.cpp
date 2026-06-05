@@ -17,9 +17,14 @@ int main() {
     //     |   \     |   \
     //     C ------- D ------- E
     //         (5)       (6)
+    //                G
+    //               / \
+    //            (2)   (4)
+    //             /     \
+    //            H       E (已有)
     //
     //   预期从 C 出发的最短路径：
-    //   C=0, A=1, D=5, B=6, E=11
+    //   C=0, A=1, D=5, B=6, E=11, G=12, H=14
 
     dijkstra::Graph graph;
 
@@ -30,6 +35,9 @@ int main() {
     graph.addUndirectedEdge("B", "E", 3);
     graph.addUndirectedEdge("C", "D", 5);
     graph.addUndirectedEdge("D", "E", 6);
+    graph.addUndirectedEdge("D", "G", 7);
+    graph.addUndirectedEdge("E", "G", 4);
+    graph.addUndirectedEdge("G", "H", 2);
 
     std::cout << debug::graphToString(graph) << "\n";
 
