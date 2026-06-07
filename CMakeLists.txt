@@ -30,7 +30,13 @@ add_executable(grid_dijkstra_demo
     src/grid_astar.cpp
 )
 
+# ===== 模板学习 Demo =====
+add_executable(template_demo
+    src/template_demo.cpp
+)
+
 # ===== include 路径 =====
 target_include_directories(dijkstra_demo PRIVATE include)
 target_include_directories(dijkstra2_demo PRIVATE include)
 target_include_directories(grid_dijkstra_demo PRIVATE include)
+target_include_directories(template_demo PRIVATE include)
